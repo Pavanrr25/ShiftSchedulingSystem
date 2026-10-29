@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#17152b">
+
+    <title>ShiftFlow | Employee Scheduler</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">S</div>
+        <div>
+            <h1>ShiftFlow</h1>
+            <p>Workforce Management System</p>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <span class="status-pill">
+            <span class="status-dot"></span>
+            System Online
+        </span>
+        <span class="date-display">{{ today }}</span>
+    </div>
+</header>
+
+<main class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for category, message in messages %}
+                    <div class="message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <section class="welcome-section">
+        <div>
+            <span class="eyebrow">WORKFORCE OVERVIEW</span>
+            <h2>Employee Scheduling Dashboard</h2>
+            <p>Manage your team, organize work shifts, and keep
+               scheduling conflicts under control.</p>
+        </div>
+        <div class="welcome-icon">📅</div>
+    </section>
+
+    <!-- Statistics -->
+    <section class="stats">
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Total Employees</span>
+                <div class="stat-icon purple">👥</div>
+            </div>
+            <strong>{{ employee_count }}</strong>
+            <small>Registered employees</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Total Shifts</span>
+                <div class="stat-icon blue">🕒</div>
+            </div>
+            <strong>{{ shift_count }}</strong>
+            <small>Created work shifts</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-top">
+                <span>Assignments</span>
+                <div class="stat-icon green">✓</div>
+            </div>
+            <strong>{{ assignment_count }}</strong>
+            <small>Employee allocations</small>
+        </div>
+    </section>
+
+    <!-- Employee and Shift Forms -->
+    <section class="two-column">
+
+        <article class="panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">STEP 01</span>
+                    <h3>Add New Employee</h3>
+                    <p>Register an employee in your workforce.</p>
+                </div>
+                <span class="heading-icon">👤</span>
+            </div>
+
+            <form action="{{ url_for('add_employee') }}"
+                  method="POST" class="form-grid">
+
+                <label>
+                    Employee ID
+                    <input type="text" name="employee_id"
+                           maxlength="30"
+                           placeholder="Example: EMP001" required>
+                </label>
+
+                <label>
+                    Full Name
+                    <input type="text" name="name"
+                           maxlength="100"
+                           placeholder="Enter employee name" required>
+                </label>
+
+                <button type="submit" class="primary">
+                    + Add Employee
+                </button>
+            </form>
+        </article>
+
+        <article class="panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">STEP 02</span>
+                    <h3>Create New Shift</h3>
+                    <p>Define working hours and shift dates.</p>
+                </div>
+                <span class="heading-icon">⏰</span>
+            </div>
+
+            <form action="{{ url_for('create_shift') }}"
+                  method="POST" class="form-grid">
+
+                <label>
+                    Shift Date
+                    <input type="date" name="shift_date"
+                           value="{{ today }}" required>
+                </label>
+
+                <div class="time-row">
+                    <label>
+                        Start Time
+                        <input type="time" name="start_time" required>
+                    </label>
+
+                    <label>
+                        End Time
+                        <input type="time" name="end_time" required>
+                    </label>
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" name="overnight">
+                    Overnight shift (ends next day)
+                </label>
+
+                <button type="submit" class="primary">
+                    + Create Shift
+                </button>
+            </form>
+        </article>
+
+    </section>
+
+    <!-- Schedule -->
+    <section class="panel schedule-panel">
+
+        <div class="panel-heading schedule-heading">
+            <div>
+                <span class="eyebrow">STEP 03</span>
+                <h3>Employee Shift Schedule</h3>
+                <p>View shifts and manage employee assignments.</p>
+            </div>
+
+            <form method="GET" action="{{ url_for('index') }}"
+                  class="filter-form">
+
+                <input type="date" name="date"
+                       value="{{ selected_date }}">
+
+                <button type="submit" class="secondary">
+                    Filter
+                </button>
+
+                {% if selected_date %}
+                    <a href="{{ url_for('index') }}" class="clear-link">
+                        Clear
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+
+        {% if shifts %}
+
+        <div class="shift-list">
+
+            {% for shift in shifts %}
+
+            <article class="shift-card">
+
+                <div class="shift-main">
+
+                    <div class="date-badge">
+                        <strong>{{ shift.shift_date[8:10] }}</strong>
+                        <span>
+                            {{ shift.shift_date[5:7] }}/{{ shift.shift_date[0:4] }}
+                        </span>
+                    </div>
+
+                    <div class="shift-info">
+                        <h4>
+                            {{ shift.start_time }} – {{ shift.end_time }}
+
+                            {% if shift.is_overnight %}
+                                <span class="overnight-tag">+1 Day</span>
+                            {% endif %}
+                        </h4>
+
+                        <p>
+                            {{ shift.assigned_count }}
+                            employee{{ '' if shift.assigned_count == 1 else 's' }}
+                            assigned
+                        </p>
+
+                        <div class="assignee-list">
+
+                            {% for person in assigned_by_shift.get(shift.id, []) %}
+
+                            <div class="person-chip">
+                                {{ person.name }}
+                                <small>{{ person.employee_id }}</small>
+
+                                <form
+                                    action="{{ url_for('remove_assignment', assignment_id=person.assignment_id) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Remove this assignment?');">
+
+                                    <button type="submit" class="remove-chip"
+                                            title="Remove assignment">×</button>
+                                </form>
+                            </div>
+
+                            {% else %}
+                                <span class="empty-note">
+                                    No employees assigned yet.
+                                </span>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shift-actions">
+
+                    {% if employees %}
+
+                    <form action="{{ url_for('assign_employee') }}"
+                          method="POST" class="assign-form">
+
+                        <input type="hidden" name="shift_id"
+                               value="{{ shift.id }}">
+
+                        <select name="employee_id" required>
+                            <option value="">Select employee</option>
+
+                            {% for employee in employees %}
+                            <option value="{{ employee.employee_id }}">
+                                {{ employee.name }} ({{ employee.employee_id }})
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                        <button type="submit" class="secondary">
+                            Assign
+                        </button>
+                    </form>
+
+                    {% else %}
+                        <span class="hint">Add employees first.</span>
+                    {% endif %}
+
+                    <form action="{{ url_for('delete_shift', shift_id=shift.id) }}"
+                          method="POST"
+                          onsubmit="return confirm('Delete this shift?');">
+
+                        <button type="submit" class="danger-button">
+                            Delete Shift
+                        </button>
+                    </form>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <div>📅</div>
+            <h4>No Shifts Found</h4>
+            <p>Create a new shift to get started.</p>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    <!-- Employee Table -->
+    <section class="panel">
+
+        <div class="panel-heading">
+            <div>
+                <span class="eyebrow">WORKFORCE</span>
+                <h3>Employee Directory</h3>
+                <p>Manage registered employees and their assignments.</p>
+            </div>
+        </div>
+
+        {% if employees %}
+
+        <div class="table-wrap">
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Assigned Shifts</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for employee in employees %}
+
+                    <tr>
+                        <td>
+                            <span class="id-pill">
+                                {{ employee.employee_id }}
+                            </span>
+                        </td>
+
+                        <td>{{ employee.name }}</td>
+
+                        <td>
+                            <span class="count-pill">
+                                {{ employee.shift_count }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <form
+                                action="{{ url_for('delete_employee', employee_id=employee.employee_id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Delete this employee?');">
+
+                                <button type="submit" class="danger-button">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <h4>No Employees Registered</h4>
+            <p>Add your first employee using the form above.</p>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    <footer>
+        <strong>ShiftFlow</strong> · Employee Shift Scheduling System
+        <br>
+        Built with Python, Flask and SQLite
+    </footer>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+
+# Employee Shift Scheduling System
+
+## About the Project
+
+I built this project to make employee shift scheduling easier. It is a web application where you can add employees, create shifts, assign employees to shifts, and manage the complete schedule from one place.
+
+While working on this project, I focused on one important problem: making sure an employee is not assigned to two shifts at the same time. The application checks for overlapping shifts and displays an error if a scheduling conflict occurs.
+
+I used Python and Flask to build the application, SQLite to store the data, and HTML and CSS to design the interface.
+
+## Features
+
+- Add employees with a unique employee ID and name.
+- Create shifts by selecting a date, start time, and end time.
+- Assign multiple employees to the same shift.
+- Prevent employees from being assigned to overlapping shifts.
+- Allow back-to-back shifts when one shift ends exactly when the next begins.
+- Create overnight shifts, such as 10:00 PM to 6:00 AM.
+- Filter shifts by date.
+- View the total number of assigned shifts for each employee.
+- Delete employees and shifts when they are no longer needed.
+- Save employee and shift information in an SQLite database.
+
+## Technologies Used
+
+- Python
+- Flask
+- SQLite
+- HTML
+- CSS
+- Jinja2
+- unittest
+
+## How It Works
+
+The main purpose of this application is to manage employee schedules without timing conflicts.
+
+Whenever an employee is assigned to a shift, the application checks their existing shifts for the same period. If the new shift overlaps with an existing one, the assignment is rejected.
+
+The conflict-checking logic uses the following condition:
+
+```text
+existing_start < new_end AND new_start < existing_end
+```
+
+For example:
+
+- If an employee already has a shift from 9:00 AM to 1:00 PM, assigning them another shift from 12:00 PM to 3:00 PM is not allowed.
+- Assigning them a shift from 1:00 PM to 4:00 PM is allowed because the previous shift has already ended.
+- Two different employees can be assigned to shifts that take place at the same time.
+
+The application also supports overnight shifts. For example, a shift starting at 10:00 PM and ending at 6:00 AM is treated as ending the next day. This allows the application to check conflicts across midnight.
+
+## Getting Started
+
+### Requirements
+
+Make sure you have the following installed:
+
+- Python 3.10 or newer
+- pip
+
+### 1. Open the Project
+
+Open the project folder in VS Code or your preferred code editor.
+
+If you are downloading it from GitHub, run:
+
+```bash
+git clone <your-repository-url>
+cd ShiftSchedulingSystem
+```
+
+Replace `<your-repository-url>` with your GitHub repository URL.
+
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+### 3. Activate the Environment
+
+For Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+For Windows Command Prompt:
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+For macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+### 4. Install the Required Packages
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Run the Application
+
+```bash
+python app.py
+```
+
+Once the server starts, open this URL in your browser:
+
+http://127.0.0.1:5000
+
+The application uses SQLite to store its data locally. The database file is created automatically if the application is configured to initialize it on startup.
+
+## Testing
+
+I have included a test file named `test_logic.py` to test the scheduling logic.
+
+To run the tests, use:
+
+```bash
+python -m unittest test_logic.py -v
+```
+
+You can also test the application manually:
+
+1. Add an employee and create a shift from 9:00 AM to 1:00 PM.
+2. Try assigning the same employee to another shift from 12:00 PM to 3:00 PM. The application should reject it.
+3. Create a shift from 1:00 PM to 4:00 PM for the same employee. This should work.
+4. Assign another employee to the original shift. This should also work.
+5. Create an overnight shift and check whether overlapping assignments are prevented.
+6. Use the date filter to check the schedule for a particular day.
+
+## Project Structure
+
+```text
+ShiftSchedulingSystem/
+├── app.py
+├── shift_logic.py
+├── test_logic.py
+├── requirements.txt
+├── shifts.db
+├── templates/
+│   └── index.html
+└── static/
+    └── style.css
+```
+
+- `app.py` contains the Flask application and routes.
+- `shift_logic.py` contains the scheduling and conflict-checking logic.
+- `test_logic.py` contains tests for the business logic.
+- `requirements.txt` lists the required Python packages.
+- `shifts.db` stores the application data.
+- `templates/index.html` contains the main web page.
+- `static/style.css` contains the styling.
+
+## What I Learned
+
+Building this project gave me practical experience with Flask, SQLite, handling form submissions, and validating user input on the server.
+
+I also worked on the scheduling logic, especially checking overlapping shifts and handling overnight timings. It helped me understand how to turn real-world requirements into application logic and test different cases.
+
+## Future Improvements
+
+Some things I would like to add in the future are:
+
+- Employee login and manager accounts.
+- Weekly and monthly schedule views.
+- Employee availability and leave management.
+- Exporting schedules to PDF or Excel.
+- Notifications for upcoming shifts.
+- A more responsive mobile interface.
+
+## Author
+
+**Pavan Rathod**
+
+GitHub: <your-github-profile-url>
+
+This project was developed as a practical project to improve my skills in Python, Flask, database management, and web application development.
